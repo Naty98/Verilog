@@ -1,0 +1,80 @@
+`timescale 1ns / 1ps
+//////////////////////////////////////////////////////////////////////////////////
+// Company: 
+// Engineer: 
+// 
+// Create Date:    11:50:25 04/03/2019 
+// Design Name: 
+// Module Name:    contadorseg 
+// Project Name: 
+// Target Devices: 
+// Tool versions: 
+// Description: 
+//
+// Dependencies: 
+//
+// Revision: 
+// Revision 0.01 - File Created
+// Additional Comments: 
+//
+//////////////////////////////////////////////////////////////////////////////////
+module contadorseg#(parameter COUNT_LIMIT=32'd15)(
+    input iCLK,
+    input iRST, 
+	 input iACK,
+    output oSeg  // Es la salida por cada segundo mandara un alto para el RST del contador de flancos
+	  );
+	 
+	reg [25:0] rCount_q;
+	reg [25:0] rCount_d;
+	
+	reg rSeg_d;
+	reg rSeg_q;
+	 
+	reg rACK_d; 
+	reg rACK_q; 
+	
+	assign oSeg = rSeg_q;
+	
+	always @(posedge iCLK)
+	begin
+		if(iRST)
+		begin
+			rCount_q <= 0;
+			rSeg_q <= 0; 
+			rACK_q <= 0;
+		end
+		else
+		begin
+			rCount_q <= rCount_d;
+			rSeg_q <= rSeg_d; 
+			rACK_q <= rACK_d;
+		end
+	end
+	
+	always @*
+	begin 
+		rSeg_d = rSeg_q; 
+		rACK_d = iACK; 
+		rCount_d = rCount_q; 
+		 
+		if(iACK ^ rACK_q) 
+		begin 
+			rCount_d = 0; 
+			rSeg_d = 0; 
+		end 
+		//Count_q <26'd50000000	
+		//Aqui al llegar a la cuenta de 50 millones reiniciara y mandara un pulso de salida en alto
+		else if(rCount_q >= COUNT_LIMIT)
+		begin
+			rSeg_d = 1;
+		end
+		else
+		begin
+			rCount_d = rCount_q + 1;
+		end
+	end
+
+
+endmodule
+

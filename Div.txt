@@ -1,0 +1,57 @@
+`timescale 1ns / 1ps
+//////////////////////////////////////////////////////////////////////////////////
+// Company: 
+// Engineer: 
+// 
+// Create Date:    11:51:35 04/01/2019 
+// Design Name: 
+// Module Name:    DivAnod 
+// Project Name: 
+// Target Devices: 
+// Tool versions: 
+// Description: 
+//
+// Dependencies: 
+//
+// Revision: 
+// Revision 0.01 - File Created
+// Additional Comments: 
+//
+//////////////////////////////////////////////////////////////////////////////////
+module DivAnod(
+    input iclk,
+	 output oSal
+    );
+	 
+	 reg [26:0] rvCount_D;
+	 reg [26:0] rvCount_Q;
+	 
+	 reg Salid_D;
+	 reg Salid_Q;
+	 
+	 assign oSal = Salid_Q;
+	 
+	 always @(posedge iclk)
+	 begin
+		rvCount_Q = rvCount_D;
+		Salid_Q = Salid_D;
+	 end
+	 
+	 always @*
+	 begin
+		if(rvCount_Q == 27'd10_000)
+			begin
+				rvCount_D = 0;
+				Salid_D = 1;
+			end
+		else
+		begin
+			rvCount_D = rvCount_Q + 1'd1;
+			Salid_D = 0;
+		end
+	end
+
+endmodule
+
+
+

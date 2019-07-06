@@ -1,0 +1,41 @@
+net "iClk" loc = B8;
+net "iRst" loc = G12;
+
+net "lcd_rs" loc = B2;
+net "lcd_rw" loc = A3;
+
+net "lcd_e" loc = J3;
+net "lcd_7" loc = C5;
+net "lcd_6" loc = B6;
+net "lcd_5" loc = C6;
+net "lcd_4" loc = B5;
+
+net "oServo" loc = B7;
+net "iADC<0>" loc = A9;
+net "iADC<1>" loc = B9;
+net "iADC<2>" loc = A10;
+net "iADC<3>" loc = C9;
+net "iADC<4>" loc = C12;
+net "iADC<5>" loc = A13;
+net "iADC<6>" loc = C13;
+net "iFlujo"  loc = D12;
+
+net "iSel" loc = P11;
+
+net "seg<0>" loc = L14;
+net "seg<1>" loc = H12;
+net "seg<2>" loc = N14;
+net "seg<3>" loc = N11;
+net "seg<4>" loc = P12;
+net "seg<5>" loc = L13; 
+net "seg<6>" loc = M12;
+
+net "anodos<0>" loc = K14;
+net "anodos<1>" loc = M13;
+net "anodos<2>" loc = J12;
+net "anodos<3>" loc = F12;
+
+NET "iSel" CLOCK_DEDICATED_ROUTE = FALSE;
+
+
+

@@ -1,0 +1,60 @@
+`timescale 1ns / 1ps
+//////////////////////////////////////////////////////////////////////////////////
+// Company: 
+// Engineer: 
+// 
+// Create Date:    11:33:02 04/01/2019 
+// Design Name: 
+// Module Name:    BCD 
+// Project Name: 
+// Target Devices: 
+// Tool versions: 
+// Description: 
+//
+// Dependencies: 
+//
+// Revision: 
+// Revision 0.01 - File Created
+// Additional Comments: 
+//
+//////////////////////////////////////////////////////////////////////////////////
+module BCD(
+   input [3:0] BCD,
+	input iclk,
+   output [6:0] seg
+		);
+	 
+	 reg [6:0] rvFF_Q;
+	 reg [6:0] rvFF_D;
+	 
+	 always @(posedge iclk)
+	 begin                     //Bloque secuencial
+		rvFF_Q = rvFF_D;
+	 end 
+	  
+	 assign seg = ~rvFF_Q;            
+	 always @*
+		begin
+			case (BCD) //Case statement
+			4'd0 : rvFF_D = 7'b0111111; //0
+			4'd1 : rvFF_D = 7'b0000110; //1
+			4'd2 : rvFF_D = 7'b1011011; //2
+			4'd3 : rvFF_D = 7'b1001111; //3
+			4'd4 : rvFF_D = 7'b1100110; //4
+			4'd5 : rvFF_D = 7'b1101101; //5
+			4'd6 : rvFF_D = 7'b1111101; //6
+			4'd7 : rvFF_D = 7'b0000111; //7
+			4'd8 : rvFF_D = 7'b1111111; //8
+			4'd9 : rvFF_D = 7'b1100111; //9
+			
+								//Switch off 7 segment character when the bcd digit is not a decimal number.
+			default : rvFF_D = 7'b0000000;
+		endcase
+	end
+
+
+endmodule
+
+
+
+

@@ -1,0 +1,200 @@
+`timescale 1ns / 1ps
+//////////////////////////////////////////////////////////////////////////////////
+// Company: 
+// Engineer: 
+// 
+// Create Date:    11:12:34 04/01/2019 
+// Design Name: 
+// Module Name:    Corrimiento 
+// Project Name: 
+// Target Devices: 
+// Tool versions: 
+// Description: 
+//
+// Dependencies: 
+//
+// Revision: 
+// Revision 0.01 - File Created
+// Additional Comments: 
+//
+//////////////////////////////////////////////////////////////////////////////////
+module Corrimiento(
+    input iclk,
+    input iReset,
+    input [6:0] ivADC,
+    output [3:0] ovUnits,
+    output [3:0] ovTens,
+    output [3:0] ovCent,
+	 output [3:0] ovMillar
+      );
+    
+    localparam [7:0] BIN_BCD_START_STATE = 8'd1;
+    localparam [7:0] BIN_BCD_END_STATE = 8'b10000000;
+
+	/*Registros para la salida de unidades*/
+	reg [3:0] rvUnits_d;
+	reg [3:0] rvUnits_q;
+	/*Registros para la salida de decenas*/
+	reg [3:0] rvTens_d;
+	reg [3:0] rvTens_q;
+  /*Registros para la salida de centenas*/  
+   reg [3:0] rvCent_d;
+	reg [3:0] rvCent_q;
+   /*Registros para la salida de unidades de millar*/ 
+	reg [3:0] rvMillar_d;
+	reg [3:0] rvMillar_q;
+    
+    
+	/*Registro para los corrimientos*/
+	/*es de 12 porque son 4bits del numero de entrada (input cuenta) */
+	/*4 bits para las unidades										 */
+	/*4 bits para las decenas										 */
+	/*Con este vector se simula la tabla de corrimientos             */
+	/*Ejemplo:														 */
+	/* Decenas | Unidades | Dato                                     */
+	/*  0000   |   0000   | 1010                                     */      
+	reg [22:0] rvTensUnitsCounter_d;
+	reg [22:0] rvTensUnitsCounter_q;
+
+	/*Registros para llevar la cuenta de los estados                 */
+	/*Cuand el estado sea 1, se van a asignar el dato al FF D        */
+	/*Cuando sea 5'b10000 se resetea el valor a cero                 */
+	/*En cualquier otro caso (4 casos) se hacen corrimientos y se    */
+	/*checa si se debe de sumar 3 o no                               */
+	reg [7:0] rvState_q;
+	reg [7:0] rvState_d;
+
+	/*Asignación de puertos de salida                                */
+	/*Notar que el valor sólo cambia cuando se termina la conversión */
+	/*Mientras haya conversión en curso, se asigna el último valor   */
+	/*calculad                                                       */
+	assign ovUnits = rvUnits_q;
+	assign ovTens  = rvTens_q;
+   assign ovCent = rvCent_q;
+	assign ovMillar  = rvMillar_q; 
+	
+	always  @(posedge iclk)
+	begin
+		if(iReset)
+		begin
+			rvUnits_q        <= 4'd0;
+			rvTens_q         <= 4'd0;
+         rvCent_q         <= 4'd0;
+			rvMillar_q       <= 4'd0;
+			rvTensUnitsCounter_q <= 23'd0;
+			rvState_q           <= 8'd1;
+		end
+		else
+		begin
+			rvUnits_q        <= rvUnits_d;
+			rvTens_q         <= rvTens_d;
+         rvCent_q        <= rvCent_d;
+			rvMillar_q         <= rvMillar_d;
+            
+			rvState_q           <= rvState_d;
+			rvTensUnitsCounter_q <= rvTensUnitsCounter_d;
+		end
+	end
+	
+	always @*
+	begin
+		/* Asignar el último valor */
+		rvUnits_d = rvUnits_q;
+		rvTens_d  = rvTens_q;
+      rvCent_d = rvCent_q;
+		rvMillar_d  = rvMillar_q;
+		
+		
+		if (ivADC == 8'd255)
+		begin
+			rvUnits_d = 4'b1111;
+			rvTens_d  = 4'b1111;
+			rvCent_d = 4'b1111;
+			rvMillar_d  = 4'b1111;
+			
+		end
+		if (ivADC < 8'd255)
+						begin
+						case(rvState_q)
+							BIN_BCD_START_STATE:
+							begin
+								/*Se asigna en la columna de dato, el valor actual del puerto cuenta                 */
+								rvTensUnitsCounter_d = {8'd0,ivADC[6:0]};
+								rvUnits_d        = rvTensUnitsCounter_q[10:7];
+								rvTens_d         = rvTensUnitsCounter_q[14:11];
+								rvCent_d        = rvTensUnitsCounter_q[18:15];
+								rvMillar_d         = rvTensUnitsCounter_q[22:19];
+							end
+							BIN_BCD_END_STATE:
+							begin
+								rvTensUnitsCounter_d[22:0] = {rvTensUnitsCounter_q[21:0],1'b0};
+							end
+							
+							default:
+							begin
+								/* Se hace el corrimiento a la izq */
+								rvTensUnitsCounter_d = rvTensUnitsCounter_q << 1;
+								
+								/* Checar si el valor en la columna de unidades es mayor a 4, si es así se suma 3  */
+								/* Si no, se asigna sin sumar.													   */
+								if(rvTensUnitsCounter_q[9:6] > 4'd4)
+								begin
+									rvTensUnitsCounter_d[10:7] = rvTensUnitsCounter_q[9:6] + 4'd3;
+								end
+								else
+								begin
+									rvTensUnitsCounter_d[10:7] = rvTensUnitsCounter_q[9:6];
+								end
+								/* Checar si el valor en la columna de decenas  es mayor a 4, si es así se suma 3  */
+								/* Si no, se asigna sin sumar.													   */
+								if(rvTensUnitsCounter_q[13:10] > 4'd4)
+								begin
+									rvTensUnitsCounter_d[14:11] = rvTensUnitsCounter_q[13:10] + 4'd3;
+								end
+								else
+								begin
+									rvTensUnitsCounter_d[14:11] = rvTensUnitsCounter_q[13:10];
+								end
+									 /*cent*/
+									 if(rvTensUnitsCounter_q[17:14] > 4'd4)
+								begin
+									rvTensUnitsCounter_d[18:15] = rvTensUnitsCounter_q[17:14] + 4'd3;
+								end
+								else
+								begin
+									rvTensUnitsCounter_d[18:15] = rvTensUnitsCounter_q[17:14];
+								end
+								 /*Millar*/
+									 if(rvTensUnitsCounter_q[21:18] > 4'd4)
+								begin
+									rvTensUnitsCounter_d[22:19] = rvTensUnitsCounter_q[21:18] + 4'd3;
+								end
+								else
+								begin
+									rvTensUnitsCounter_d[22:19] = rvTensUnitsCounter_q[21:18];
+								end
+							end
+						endcase
+						end
+						else 
+						begin
+							rvTensUnitsCounter_d = 0;
+						end
+			
+	end
+
+	/* Implementación máquina de edos one hot */
+	always @*        
+	begin
+        /*Se hace el corrimiento del registro que indica el estado */
+		/*00001 Estado inicial                                     */
+		/*00010 Estado de corrimiento y suma                       */
+		/*00100 Estado de corrimiento y suma                       */
+		/*01000 Estado de corrimiento y suma                       */
+		/*10000 Estado final                                       */
+		/*una vez que llega a 10000 se regresa a estado inicial    */
+		rvState_d   =   {rvState_q[7:0],rvState_q[7]};        
+	end  
+
+endmodule
+

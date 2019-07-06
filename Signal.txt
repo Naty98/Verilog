@@ -1,0 +1,61 @@
+`timescale 1ns / 1ps
+//////////////////////////////////////////////////////////////////////////////////
+// Company: 
+// Engineer: 
+// 
+// Create Date:    11:47:57 04/03/2019 
+// Design Name: 
+// Module Name:    InputSynch 
+// Project Name: 
+// Target Devices: 
+// Tool versions: 
+// Description: 
+//
+// Dependencies: 
+//
+// Revision: 
+// Revision 0.01 - File Created
+// Additional Comments: 
+//
+//////////////////////////////////////////////////////////////////////////////////
+module InputSynch(
+    input iCLK, 
+    input iRST, 
+    input iSignal, 
+    output oSynchSignal
+	 );
+	 
+	 reg [2:0] rSynchFF4_d; 
+	reg [2:0] rSynchFF4_q; 
+	 
+	assign oSynchSignal = rSynchFF4_q[2]; 
+	 
+	always@(posedge iCLK) 
+	begin 
+		if(iRST) 
+		begin 
+	 
+			rSynchFF4_q <= 0; 
+		end 
+		else 
+		begin 
+		 
+			rSynchFF4_q	<= rSynchFF4_d;		 
+		end 
+	end 
+	 
+	 
+	always@* 
+	begin 
+		 
+		rSynchFF4_d[2:0] = {rSynchFF4_q[1:0],iSignal}; 
+	 
+	end 
+
+
+endmodule
+
+
+
+
+

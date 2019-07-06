@@ -1,0 +1,64 @@
+`timescale 1ns / 1ps
+//////////////////////////////////////////////////////////////////////////////////
+// Company: 
+// Engineer: 
+// 
+// Create Date:    10:49:30 04/01/2019 
+// Design Name: 
+// Module Name:    Election 
+// Project Name: 
+// Target Devices: 
+// Tool versions: 
+// Description: 
+//
+// Dependencies: 
+//
+// Revision: 
+// Revision 0.01 - File Created
+// Additional Comments: 
+//
+//////////////////////////////////////////////////////////////////////////////////
+module Election(
+	input iClk,
+	input iSel,
+	input [6:0] iADC,
+	input [6:0] iFlujo,
+	input iServo,
+	output oServo,
+	output [6:0] oSensor
+    );
+	 
+	 reg [6:0] rvSensor_d;
+	 reg [6:0] rvSensor_q;
+	 
+	 reg rServo_d;
+	 reg rServo_q;
+	 
+	 assign oSensor = rvSensor_q;
+	 assign oServo = rServo_q;
+	 
+	 always @(posedge iClk)
+	 begin
+		rvSensor_q = rvSensor_d;
+		rServo_q = rServo_d;
+	 end
+	 
+	 always @*
+	 begin
+		 if(iSel == 1'b0)        
+			begin
+				rvSensor_d = iADC;
+				//rServo_d = 1'b0;
+			end
+		else if(iSel == 1'b1)          //Flujo de Agua - Servomotor
+			begin
+				rvSensor_d = iFlujo;
+				rServo_d = iServo;
+			end
+		else
+			rvSensor_d = rvSensor_q;
+			//rServo_d = 1'b0;
+	 end
+
+
+endmodule

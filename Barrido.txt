@@ -1,0 +1,66 @@
+`timescale 1ns / 1ps
+//////////////////////////////////////////////////////////////////////////////////
+// Company: 
+// Engineer: 
+// 
+// Create Date:    11:49:53 04/01/2019 
+// Design Name: 
+// Module Name:    Desplazamiento_B 
+// Project Name: 
+// Target Devices: 
+// Tool versions: 
+// Description: 
+//
+// Dependencies: 
+//
+// Revision: 
+// Revision 0.01 - File Created
+// Additional Comments: 
+//
+//////////////////////////////////////////////////////////////////////////////////
+module Desplazamiento_B(
+   input iclk,
+	input iCE,
+	output [3:0] anodo
+     );
+	 
+	 reg [3:0] anodo_Q = 4'b1110;
+	 reg [3:0] anodo_D;
+	 
+	 assign anodo = anodo_Q;
+	 
+	 always @(posedge iclk)
+	 begin
+		if(iCE == 1'b1)
+		begin
+			anodo_Q = anodo_D;
+		end
+		else
+			anodo_Q = anodo_Q;
+	 end
+	 
+	 always @*
+	 begin
+			if(anodo_Q == 4'b1110)
+				begin
+					anodo_D = 4'b1101;
+			   end
+			else if(anodo_Q == 4'b1101)
+				begin
+					anodo_D = 4'b1011;
+				end
+			else if(anodo_Q == 4'b1011)
+				begin
+					anodo_D = 4'b0111;
+				end
+			else if(anodo_Q == 4'b0111)
+				begin
+					anodo_D = 4'b1110;
+				end
+			else
+				anodo_D = anodo_Q;
+	 end
+
+endmodule
+
+

@@ -1,0 +1,164 @@
+module Top_module(
+	input iClk,
+	output lcd_rs,
+	output lcd_rw,
+	output lcd_7,
+	output lcd_6,
+	output lcd_5,
+	output lcd_4,
+	output lcd_e,
+	input iRst,
+	input iSel,
+	input iFlujo,
+	input [6:0] iADC,
+	output oServo,
+	output [3:0] anodos,
+	output [6:0] seg
+     );
+	 
+	 wire [6:0] wEle_Corr; 
+	 
+	 wire [3:0] adc_corrim1;
+	 wire [3:0] adc_corrim2;
+	 wire [3:0] adc_corrim3;
+	 wire [3:0] adc_corrim4;
+	 
+	 wire [6:0] bcd_mux_1;
+	 wire [6:0] bcd_mux_2;
+	 wire [6:0] bcd_mux_3;
+	 wire [6:0] bcd_mux_4;
+	 
+	 wire div_anodos;
+	 wire wServo;
+	 wire [3:0] anodo_mux;
+	 
+	 wire wsignalsynch;
+	 wire wedgedectector;
+	 
+	 wire wACK;
+	 wire wRestart;
+	 wire [6:0] wCount;
+	 wire wSignal;
+	
+	 assign anodos = anodo_mux;
+	 
+	lcd LCD(
+	 .iClk(iClk),
+	 .lcd_rs(lcd_rs),
+	 .lcd_rw(lcd_rw),
+	 .lcd_7(lcd_7),
+	 .lcd_6(lcd_6),
+	 .lcd_5(lcd_5),
+	 .lcd_4(lcd_4),
+	 .lcd_e(lcd_e)
+	   );
+		
+	Desplazamiento_B Barrido(
+		.iclk (iClk),
+		.iCE  (div_anodos),
+		.anodo (anodo_mux)
+			); 
+   
+	DivAnod Div(
+	 .iclk (iClk),
+    .oSal (div_anodos)
+	   );
+		
+	debouncer deb(
+	 .CLK (iClk),
+    .switch_input (iFlujo),
+    .trans_dn	(wSignal)
+	 );
+	 
+	 InputSynch SignalSynch (
+    .iCLK(iClk), 
+    .iRST(iRst), 
+    .iSignal(wSignal), 
+    .oSynchSignal(wsignalsynch)
+    );
+	 
+	 detectorflancopos EdgeDectector (
+    .iCLK(iClk), 
+    .iRST(iRst), 
+    .iSignal(wsignalsynch), 
+    .oDetectorFlanco(wedgedectector)
+    );
+	 
+	 contadorseg #(50000000)TimeBase (
+    .iCLK(iClk), 
+    .iRST(iRst), 
+    .iACK(wACK), 
+    .oSeg(wRestart)
+    );
+	 
+	 EdgeCounter EdgeCounter9999 (//////////////////////////////////////////
+    .iCLK(iClk), 
+    .iRST(iRst), 
+    .iCE(wedgedectector), 
+    .iRestart(wRestart), 
+    .ACK(wACK), 
+    .oCount(wCount)
+    );
+		
+	Servo Motor(
+	 .clk(iClk),
+	 .boton(iSel),
+	 .servo(wServo)
+	   );
+		
+	Election Eleccion(
+		.iClk(iClk),
+		.iSel(iSel),
+		.iFlujo(wCount),
+		.iADC(iADC),
+		.iServo(wServo),
+		.oServo(oServo),
+		.oSensor(wEle_Corr)
+			);
+			
+	Corrimiento CORR(
+		 .iclk(iClk),
+		 .iReset(iRst),
+		 .ivADC(wEle_Corr),
+       .ovUnits(adc_corrim1),
+       .ovTens(adc_corrim2),
+       .ovCent(adc_corrim3),
+		 .ovMillar(adc_corrim4)
+			);
+			
+	BCD decoder1(
+	 .BCD (adc_corrim1),
+	 .iclk (iClk),
+    .seg  (bcd_mux_1)
+	   );
+		
+	BCD decoder2(
+	 .BCD (adc_corrim2),
+	 .iclk (iClk),
+    .seg  (bcd_mux_2)
+	   );
+		
+	BCD decoder3(
+	 .BCD (adc_corrim3),
+	 .iclk (iClk),
+    .seg  (bcd_mux_3)
+	   );
+		
+	BCD decoder4(
+	 .BCD (adc_corrim4),
+	 .iclk (iClk),
+    .seg  (bcd_mux_4)
+	   );
+		
+	MUX mux(
+	 .iclk (iClk),
+	 .ianodos (anodo_mux),
+	 .iBCD1 (bcd_mux_1),
+	 .iBCD2 (bcd_mux_2),
+	 .iBCD3 (bcd_mux_3),
+	 .iBCD4 (bcd_mux_4),
+	 .osel  (seg)
+		);
+		
+		
+endmodule

@@ -1,0 +1,87 @@
+`timescale 1ns / 1ps
+//////////////////////////////////////////////////////////////////////////////////
+// Company: 
+// Engineer: 
+// 
+// Create Date:    11:51:12 04/03/2019 
+// Design Name: 
+// Module Name:    EdgeCounter 
+// Project Name: 
+// Target Devices: 
+// Tool versions: 
+// Description: 
+//
+// Dependencies: 
+//
+// Revision: 
+// Revision 0.01 - File Created
+// Additional Comments: 
+//
+//////////////////////////////////////////////////////////////////////////////////
+module EdgeCounter(
+    input iCLK, 
+    input iRST, 
+	 input iCE, 
+    input iRestart, 
+	 output ACK, 
+    output [6:0] oCount 
+	  );
+	 
+	 reg [6:0] rCount_d; 
+	reg [6:0] rCount_q; 
+	 
+	reg [6:0] rCountOut_d; 
+	reg [6:0] rCountOut_q; 
+	 
+	reg rACK_d; 
+	reg rACK_q; 
+	 
+	assign oCount = rCountOut_q; 
+	assign ACK = rACK_q; 
+	 
+	always@(posedge iCLK) 
+	begin 
+		if(iRST) 
+		begin 
+			rCount_q <= 14'd0; 
+			rCountOut_q <= 14'd0; 
+			rACK_q <= 0; 
+		end 
+		else 
+		begin 
+			if(iCE) 
+			begin 
+				rCount_q <= rCount_d; 
+				rCountOut_q <= rCountOut_d; 
+				rACK_q <= rACK_d; 
+			end 
+		end 
+	end 
+	 
+	always@* 
+	begin 
+		rACK_d = rACK_q; 
+		if(rCount_q > 14'd9999) 
+		begin 
+			rCount_d = 14'd9999; 
+			rCountOut_d = rCountOut_q; 
+		end 
+		else 
+		begin 
+			if(iRestart) 
+			begin 
+				rCountOut_d = rCount_q; 
+				rCount_d = 14'd0; 
+				rACK_d = ~rACK_q; 
+			end 
+			else 
+			begin 
+				rCountOut_d = rCountOut_q; 
+				rCount_d = rCount_q + 1'd1; 
+			end 
+		end 
+	end 
+
+
+endmodule
+

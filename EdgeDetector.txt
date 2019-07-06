@@ -1,0 +1,67 @@
+`timescale 1ns / 1ps
+//////////////////////////////////////////////////////////////////////////////////
+// Company: 
+// Engineer: 
+// 
+// Create Date:    11:48:52 04/03/2019 
+// Design Name: 
+// Module Name:    detectorflancopos 
+// Project Name: 
+// Target Devices: 
+// Tool versions: 
+// Description: 
+//
+// Dependencies: 
+//
+// Revision: 
+// Revision 0.01 - File Created
+// Additional Comments: 
+//
+//////////////////////////////////////////////////////////////////////////////////
+module detectorflancopos(
+    input iCLK, 
+    input iRST, 
+    input iSignal, 
+    output oDetectorFlanco
+	 );
+	 
+	 reg rff1_d; 
+	 reg rff1_q; 
+	  
+	 reg rff2_d; 
+	 reg rff2_q; 
+	  
+	 reg rff3_d; 
+	 reg rff3_q; 
+	  
+	 assign oDetectorFlanco = rff3_q; 
+	  
+	 always @(posedge iCLK) 
+	 begin 
+		if(iRST) 
+		begin 
+			rff1_q <= 0; 
+			rff2_q <= 0; 
+			rff3_q <= 0; 
+		end 
+		else 
+		begin 
+			rff1_q <= rff1_d; 
+			rff2_q <= rff2_d; 
+			rff3_q <= rff3_d; 
+		end 
+	end 
+	 
+	always @* 
+	begin 
+	rff1_d = iSignal; 
+	rff2_d = rff1_q; 
+	rff3_d = rff1_q & ~rff2_q; 
+	end
+
+
+endmodule
+
+
+
+
